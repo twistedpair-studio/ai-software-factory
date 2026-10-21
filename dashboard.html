@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Software Factory</title>
+<style>
+    :root {
+        --bg: #f6f7f9; --panel: #ffffff; --ink: #1a2233; --muted: #68738a;
+        --line: #e3e7ee; --accent: #4f46e5; --pass: #16a34a; --pass-bg: #dcfce7;
+        --changes: #b45309; --changes-bg: #fef3c7; --danger: #b91c1c; --danger-bg: #fee2e2;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --bg: #0f131c; --panel: #171d29; --ink: #e7ebf3; --muted: #8b95ab;
+            --line: #2a3345; --accent: #818cf8; --pass: #4ade80; --pass-bg: #14351f;
+            --changes: #fbbf24; --changes-bg: #3a2c0a; --danger: #f87171; --danger-bg: #3b1516;
+        }
+    }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0; background: var(--bg); color: var(--ink);
+        font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    header.page {
+        padding: 20px 24px 10px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    }
+    header.page h1 { font-size: 18px; margin: 0; letter-spacing: -0.01em; }
+    header.page .sub { color: var(--muted); font-size: 12.5px; }
+    #board {
+        display: grid; gap: 12px; padding: 12px 24px 32px;
+        grid-template-columns: repeat(6, minmax(168px, 1fr));
+        min-width: 1080px; width: max-content; max-width: none;
+    }
+    body { overflow-x: auto; }
+    .col { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; min-height: 220px; }
+    .col.needs-human { border-color: var(--danger); }
+    .col h2 {
+        font-size: 11px; margin: 2px 4px 10px; color: var(--muted);
+        text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .col.needs-human h2 { color: var(--danger); }
+    .card {
+        border: 1px solid var(--line); border-radius: 8px; padding: 10px;
+        margin-bottom: 8px; cursor: pointer; background: var(--bg);
+    }
+    .card:hover { border-color: var(--accent); }
+    .card.needs-human { border-color: var(--danger); background: var(--danger-bg); }
+    .card h3 { margin: 0; font-size: 13px; overflow-wrap: anywhere; }
+    .card .branch { color: var(--muted); font-size: 11px; margin-top: 2px; font-family: ui-monospace, monospace; }
+    .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+    .chip {
+        font-size: 10.5px; padding: 1px 7px; border-radius: 99px;
+        border: 1px solid var(--line); color: var(--muted); background: var(--panel);
+    }
+    .chip.pass { color: var(--pass); border-color: var(--pass); background: var(--pass-bg); }
+    .chip.changes { color: var(--changes); border-color: var(--changes); background: var(--changes-bg); }
+    .card .meta { color: var(--muted); font-size: 11px; margin-top: 8px; }
+    .empty { color: var(--muted); font-size: 12px; padding: 8px 4px; }
+    #backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 45%); }
+    #drawer {
+        position: fixed; top: 0; right: 0; bottom: 0; width: min(720px, 92vw);
+        background: var(--panel); border-left: 1px solid var(--line); overflow-y: auto;
+        padding: 0 20px 40px;
+    }
+    #drawer .head { position: sticky; top: 0; background: var(--panel); display: flex;
+        align-items: center; justify-content: space-between; gap: 12px; padding: 16px 0 10px;
+        border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+    #drawer .head h2 { margin: 0; font-size: 15px; }
+    #drawer .head button { border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+        border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-size: 15px; }
+    .doc h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 18px 0 6px; }
+    .doc .body { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; font-size: 13px; }
+    .doc .body.pending { color: var(--muted); font-style: italic; }
+    .doc h1, .doc h2, .doc h3, .doc h4 { margin: 12px 0 4px; line-height: 1.25; }
+    .doc h1 { font-size: 17px; } .doc h2 { font-size: 15px; } .doc h3 { font-size: 13.5px; color: var(--ink); text-transform: none; letter-spacing: 0; }
+    .doc p { margin: 6px 0; } .doc ul { margin: 6px 0; padding-left: 20px; }
+    .doc code { font-family: ui-monospace, monospace; font-size: 12px; background: var(--bg);
+        border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+    .doc pre { background: var(--bg); border: 1px solid var(--line); border-radius: 6px;
+        padding: 10px; overflow-x: auto; }
+    .doc pre code { border: 0; padding: 0; background: none; }
+    .flash { animation: pop 350ms ease-out; }
+    @keyframes pop { from { transform: scale(0.96); opacity: 0.4; } }
+</style>
+</head>
+<body>
+<header class="page">
+    <h1>Software Factory</h1>
+    <span class="sub">spec → build → review → approve · polls every 3s · <span id="count">…</span></span>
+</header>
+<main id="board"></main>
+<div id="backdrop" hidden></div>
+<aside id="drawer" hidden>
+    <div class="head">
+        <h2 id="drawer-title"></h2>
+        <button id="drawer-close" aria-label="Close">×</button>
+    </div>
+    <div id="drawer-body"></div>
+</aside>
+
+<script>
+const STAGES = [
+    ['spec', 'Spec'], ['build', 'Build'], ['review', 'Review'],
+    ['approve', 'Approve'], ['merged', 'Merged'], ['needs-human', 'Needs Human'],
+];
+const REVIEWERS = ['security', 'ux', 'ui', 'code'];
+const VERDICT_CLASS = { PASS: 'pass', CHANGES: 'changes', pending: '' };
+
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// Minimal markdown: fences, headings, lists, bold, inline code.
+function renderMd(src) {
+    const inline = (t) => esc(t)
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
+    const out = [];
+    let list = null, code = null;
+    const flushList = () => { if (list) { out.push(`</${list}>`); list = null; } };
+    for (const line of src.split('\n')) {
+        if (line.startsWith('```')) {
+            flushList();
+            if (code === null) { code = []; } else { out.push(`<pre><code>${esc(code.join('\n'))}</code></pre>`); code = null; }
+            continue;
+        }
+        if (code !== null) { code.push(line); continue; }
+        const h = line.match(/^(#{1,4})\s+(.*)/);
+        if (h) { flushList(); out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`); continue; }
+        const li = line.match(/^\s*[-*]\s+(.*)/);
+        if (li) {
+            if (list !== 'ul') { flushList(); out.push('<ul>'); list = 'ul'; }
+            out.push(`<li>${inline(li[1])}</li>`); continue;
+        }
+        flushList();
+        if (line.trim() === '') { out.push('<br>'); } else { out.push(`<p>${inline(line)}</p>`); }
+    }
+    flushList();
+    if (code !== null) { out.push(`<pre><code>${esc(code.join('\n'))}</code></pre>`); }
+    return out.join('\n');
+}
+
+async function fetchText(path) {
+    const res = await fetch(path, { cache: 'no-store' });
+    if (!res.ok) { return null; }
+    return res.text();
+}
+
+function renderBoard(board) {
+    const jobs = (board && board.jobs) || [];
+    document.getElementById('count').textContent =
+        jobs.length === 0 ? 'no jobs yet — run /factory <feature>'
+        : `${jobs.length} job${jobs.length === 1 ? '' : 's'}`;
+    const cols = Object.fromEntries(STAGES.map(([k, label]) => [k, { label, cards: [] }]));
+    for (const job of jobs) {
+        const col = cols[job.stage] || cols.spec;
+        const chips = (job.stage === 'review' || job.stage === 'approve'
+            || job.stage === 'merged' || job.stage === 'needs-human')
+            ? `<div class="chips">${REVIEWERS.map((r) => {
+                const v = (job.reviews || {})[r] || 'pending';
+                return `<span class="chip ${VERDICT_CLASS[v]}">${r}</span>`;
+            }).join('')}</div>` : '';
+        const meta = [`round ${job.round || 1}`, `since ${job.updatedAt || ''}`]
+            .filter(Boolean).join(' · ');
+        col.cards.push(
+            `<article class="card flash ${job.stage === 'needs-human' ? 'needs-human' : ''}" data-id="${esc(job.id)}">` +
+            `<h3>${esc(job.id)} · ${esc(job.title || '')}</h3>` +
+            `<div class="branch">${esc(job.branch || '')}</div>${chips}` +
+            `<div class="meta">${esc(meta)}</div></article>`);
+    }
+    document.getElementById('board').innerHTML = STAGES.map(([k]) => {
+        const c = cols[k];
+        const cards = c.cards.length ? c.cards.join('') : `<div class="empty">—</div>`;
+        return `<section class="col ${k === 'needs-human' ? 'needs-human' : ''}"><h2>${c.label}</h2>${cards}</section>`;
+    }).join('');
+    document.querySelectorAll('.card').forEach((el) =>
+        el.addEventListener('click', () => openDrawer(el.dataset.id, jobs)));
+}
+
+async function refresh() {
+    try {
+        const text = await fetchText('board.json');
+        renderBoard(text ? JSON.parse(text) : { jobs: [] });
+    } catch (err) {
+        document.getElementById('count').textContent = 'waiting for board.json…';
+    }
+}
+
+async function openDrawer(id, jobs) {
+    const job = jobs.find((j) => j.id === id);
+    if (!job) { return; }
+    document.getElementById('drawer-title').textContent = `${id} · ${job.title || ''}`;
+    const round = job.round || 1;
+    const docs = [
+        ['Feature', `${id}/feature.md`],
+        ['Spec', `${id}/spec.md`],
+        ['Build', `${id}/build.md`],
+        ...REVIEWERS.map((r) => [`Review · ${r} (round ${round})`, `${id}/round-${round}/review-${r}.md`]),
+        ['Decision', `${id}/decision.md`],
+    ];
+    const body = document.getElementById('drawer-body');
+    body.innerHTML = '';
+    for (const [label, path] of docs) {
+        const text = await fetchText(`jobs/${path}`);
+        const sec = document.createElement('div');
+        sec.className = 'doc';
+        sec.innerHTML = text === null
+            ? `<h3>${esc(label)}</h3><div class="body pending">not written yet</div>`
+            : `<h3>${esc(label)}</h3><div class="body">${renderMd(text)}</div>`;
+        body.appendChild(sec);
+    }
+    document.getElementById('backdrop').hidden = false;
+    document.getElementById('drawer').hidden = false;
+}
+
+function closeDrawer() {
+    document.getElementById('backdrop').hidden = true;
+    document.getElementById('drawer').hidden = true;
+}
+document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+document.getElementById('backdrop').addEventListener('click', closeDrawer);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeDrawer(); } });
+
+refresh();
+setInterval(refresh, 3000);
+</script>
+</body>
+</html>
