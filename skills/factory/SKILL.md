@@ -41,7 +41,7 @@ Per project:
 - `factory/board.json` — durable state, drives the dashboard. Orchestrator writes only this.
 - `factory/backlog.md` — feature queue for `/factory next`.
 - `factory/jobs/<id>/` — `feature.md`, `clarify.md`, `spec.md`, `build.md`, `round-N/review-<name>.md`, `round-N/rework.md`, `decision.md`.
-- Dashboard: `<web-dir>/factory` is a symlink to `../factory` (web dir from repo-facts.md). Recreate with `ln -s ../factory <web-dir>/factory` if missing.
+- Dashboard: `<web-dir>/factory` is a symlink to `../factory` (web dir from repo-facts.md), and `factory/dashboard.html` is a symlink to the core's `dashboard.html`. Recreate either with `ln -s` if missing.
 
 To change the factory for one project, drop an override file in the project
 (`.opencode/skills/factory/SKILL.md` or `.opencode/agents/<name>.md`) —

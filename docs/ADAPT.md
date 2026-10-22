@@ -17,11 +17,13 @@ the factory core.
      for the stack's conventions (keep it minimal; one or two to start).
    - Public web dir for the dashboard symlink.
 3. Scaffold `factory/`: `board.json` as `{ "jobs": [] }`, `backlog.md` with a
-   short unchecked-item template, and copy `dashboard.html` from the factory
-   core.
+   short unchecked-item template, and symlink `dashboard.html` from the
+   factory core (`ln -s <factory-core>/dashboard.html factory/dashboard.html`)
+   — the core is the single source; never copy it.
 4. Symlink the dashboard into the web dir
    (`ln -s ../factory <web-dir>/factory`) and add `.gitignore` entries:
-   `/factory/board.json`, `/factory/jobs`, `/<web-dir>/factory`.
+   `/factory/board.json`, `/factory/jobs`, `/factory/dashboard.html`,
+   `/<web-dir>/factory`.
 5. Verify: the factory skill loads (`/factory` responds), the orchestrator
    row's model is available, and report anything that does not fit this
    repo's shape — never work around it by editing the core.
