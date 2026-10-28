@@ -1,7 +1,16 @@
 ---
-name: reviewer-security
 description: Reviews a factory job branch for security issues. Spawn in parallel with the other three reviewers each round.
-tools: Read, Grep, Glob, Bash, Write
+mode: subagent
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "factory/**"
+    effect: allow
+  - action: subagent
+    resource: "*"
+    effect: deny
 ---
 
 # Security Reviewer

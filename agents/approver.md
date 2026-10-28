@@ -1,7 +1,16 @@
 ---
-name: approver
 description: Final gate for a factory job; reads everything in the job folder and writes decision.md starting with APPROVE or ESCALATE.
-tools: Read, Grep, Glob, Bash, Write
+mode: subagent
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "factory/**"
+    effect: allow
+  - action: subagent
+    resource: "*"
+    effect: deny
 ---
 
 # Approver

@@ -1,7 +1,16 @@
 ---
-name: idea-generator
 description: Turns a raw idea into a structured feature request, before any factory job exists. Spawn for /factory idea.
-tools: Read, Grep, Glob
+mode: subagent
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: "*"
+    effect: deny
 ---
 
 # Idea Generator

@@ -1,7 +1,16 @@
 ---
-name: reviewer-ui
 description: Reviews a factory job branch for UI design consistency. Spawn in parallel with the other three reviewers each round.
-tools: Read, Grep, Glob, Bash, Write
+mode: subagent
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "factory/**"
+    effect: allow
+  - action: subagent
+    resource: "*"
+    effect: deny
 ---
 
 # UI Design Reviewer

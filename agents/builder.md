@@ -1,7 +1,10 @@
 ---
-name: builder
 description: Implements a factory job on its feature branch and reports in build.md. Spawn once per job; resume the same session for rework rounds.
-tools: Read, Grep, Glob, Bash, Write, Edit
+mode: subagent
+permissions:
+  - action: subagent
+    resource: "*"
+    effect: deny
 ---
 
 # Builder

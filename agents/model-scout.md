@@ -1,8 +1,19 @@
 ---
-name: model-scout
 description: Weekly review of the model roster. Reads a data snapshot and proposes changes to models.md. Never edits models.md directly.
 mode: subagent
-tools: Read, Grep, Glob, Bash, Write
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "**/models.proposed.md"
+    effect: allow
+  - action: edit
+    resource: "**/models.proposal-notes.md"
+    effect: allow
+  - action: subagent
+    resource: "*"
+    effect: deny
 ---
 
 # Model Scout

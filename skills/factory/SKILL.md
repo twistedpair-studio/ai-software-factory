@@ -26,7 +26,7 @@ every spawn prompt; agents must follow the domain skills it lists.
 
 Core (the factory repo — this skill's parent directory):
 
-- `agents/<name>.md` — one file per loop role, registered globally (`~/.config/opencode/agents/`), so every project gets them. They carry no `model:` — models resolve from `models.md`.
+- `agents/<name>.md` — one file per loop role, registered globally (`~/.config/opencode/agents/`), so every project gets them. They carry no `model:` — models resolve from `models.md`. Frontmatter is native V2: `mode: subagent` plus `permissions` rules per role. No `name:` and no V1 `tools:` lists — OpenCode silently skips agent files that carry them.
 - `models.md` — single source of truth for every agent's model; edit a row to upgrade.
 - `models-changelog.md` — history of roster changes; the model-scout's memory of accepted and rejected proposals.
 - `snapshots/` — dated model-data snapshots (gitignored, regenerable); the scout reads `latest.json` and `latest-diff.json`.

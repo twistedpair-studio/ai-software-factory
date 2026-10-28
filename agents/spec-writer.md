@@ -1,7 +1,16 @@
 ---
-name: spec-writer
 description: Writes the specification for a factory job from its feature description, or asks clarification questions when the feature is too ambiguous to spec. Spawn at the start of every job.
-tools: Read, Grep, Glob, Bash, Write
+mode: subagent
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "factory/**"
+    effect: allow
+  - action: subagent
+    resource: "*"
+    effect: deny
 ---
 
 # Spec Writer
